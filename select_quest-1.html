@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SELECT Quest — SQL игра</title>
+<style>
+:root{--bg:#0b1020;--panel:#141c32;--panel2:#1b2743;--text:#eef3ff;--muted:#a9b7d5;--accent:#78f0c4;--purple:#9b8cff;--bad:#ff8494}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#1a2850 0%,var(--bg) 60%);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);display:flex;align-items:center;justify-content:center;padding:20px}
+.app{width:min(760px,100%)}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.brand{font-weight:900;letter-spacing:.5px;font-size:20px}.brand span{color:var(--accent)}.pill{border:1px solid #344263;border-radius:999px;padding:7px 12px;color:var(--muted);font-size:13px}
+.card{background:linear-gradient(145deg,rgba(25,36,64,.97),rgba(17,24,43,.98));border:1px solid #2a3858;border-radius:24px;padding:clamp(22px,5vw,38px);box-shadow:0 24px 80px #0005}
+.kicker{color:var(--accent);text-transform:uppercase;font-size:12px;letter-spacing:2px;font-weight:800}h1{font-size:clamp(32px,7vw,52px);line-height:1.05;margin:12px 0}h2{font-size:clamp(23px,5vw,32px);margin:15px 0}.muted{color:var(--muted);line-height:1.6}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}.feature{background:#ffffff08;border:1px solid #2a3858;border-radius:14px;padding:14px 10px;text-align:center;font-size:13px;color:var(--muted)}.feature b{display:block;font-size:22px;margin-bottom:6px;color:var(--text)}
+button{font:inherit;cursor:pointer;border:0;border-radius:13px;padding:14px 18px;font-weight:800;transition:transform .15s,background .15s}button:hover{transform:translateY(-1px)}.primary{background:var(--accent);color:#092018;width:100%;font-size:16px}.secondary{background:#263454;color:var(--text)}.progressrow{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-bottom:10px}.track{height:7px;background:#293653;border-radius:99px;overflow:hidden;margin-bottom:24px}.bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));width:0;transition:width .25s}
+.options{display:grid;gap:10px;margin:20px 0}.option{width:100%;text-align:left;background:#1d2945;border:1px solid #344363;color:var(--text);font-weight:600;display:flex;align-items:center;gap:12px}.letter{width:30px;height:30px;border-radius:9px;background:#ffffff0d;display:grid;place-items:center;color:var(--accent);flex-shrink:0}.option.selected{border-color:var(--purple);background:#2b3157}.option.correct{border-color:var(--accent);background:#173c39}.option.wrong{border-color:var(--bad);background:#432638}.option:disabled{cursor:default;transform:none}.feedback{padding:14px;border-radius:12px;margin:14px 0;line-height:1.5;background:#ffffff09;color:var(--muted)}.feedback.good{border:1px solid #367e6d;color:#c6ffeb}.feedback.bad{border:1px solid #874756;color:#ffd5dc}.row{display:flex;gap:10px;margin-top:16px}.row button{flex:1}.sql{background:#080e1c;border:1px solid #2c3b5c;border-radius:13px;padding:16px;font-family:ui-monospace,monospace;color:var(--accent);overflow-wrap:anywhere;margin:16px 0}.hidden{display:none}.result{text-align:center}.bigscore{font-size:56px;font-weight:900;color:var(--accent);margin:10px}.footer{text-align:center;color:#7383a8;font-size:12px;margin-top:16px}
+@media(max-width:480px){.features{grid-template-columns:1fr}.feature{display:flex;align-items:center;text-align:left;gap:12px}.feature b{margin:0}.top{align-items:flex-start;gap:8px}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><div class="brand">⚡ SELECT <span>QUEST</span></div><div class="pill">SQL • мини-игра</div></div>
+  <section class="card" id="home">
+    <div class="kicker">Тренируйся играя</div>
+    <h1>Стань мастером <span style="color:var(--accent)">SELECT</span></h1>
+    <p class="muted">Проверь, насколько хорошо ты понимаешь SQL. Выбирай команды, проходи вопросы и набирай очки.</p>
+    <div class="features">
+      <div class="feature"><b>🎯</b>5 вопросов</div><div class="feature"><b>⭐</b>Система очков</div><div class="feature"><b>🏆</b>Итоговый ранг</div>
+    </div>
+    <button class="primary" id="start">Начать игру →</button>
+  </section>
+  <section class="card hidden" id="game">
+    <div class="progressrow"><span id="counter">Вопрос 1 из 5</span><span>⭐ <b id="score">0</b></span></div>
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="kicker" id="topic">Основы SQL</div>
+    <h2 id="question"></h2>
+    <div class="sql hidden" id="code"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback hidden" id="feedback" aria-live="polite"></div>
+    <div class="row"><button class="secondary hidden" id="restart">Начать заново</button><button class="primary" id="check" disabled>Проверить ответ</button><button class="primary hidden" id="next">Следующий вопрос →</button></div>
+  </section>
+  <section class="card hidden result" id="result">
+    <div class="kicker">Квест завершён</div><h1 id="rank">Отличная работа!</h1><div class="bigscore" id="finalscore">0/5</div>
+    <p class="muted" id="message"></p><button class="primary" id="again">Играть ещё раз ↻</button>
+  </section>
+  <div class="footer">SELECT QUEST • Учись SQL шаг за шагом</div>
+</div>
+<script>
+const questions=[
+ {topic:"Основы SQL",q:"Для чего нужна команда SELECT?",code:"",opts:["Удалять строки из таблицы","Получать данные из таблицы","Создавать новую таблицу","Изменять пароль"],a:1,why:"SELECT используется, чтобы извлекать данные из базы данных."},
+ {topic:"Выбор столбцов",q:"Как выбрать все столбцы таблицы students?",code:"",opts:["SELECT ALL FROM students;","SELECT * FROM students;","GET * FROM students;","SHOW students;"],a:1,why:"Символ * означает «все столбцы»."},
+ {topic:"Фильтрация",q:"Какая команда позволяет выбрать только строки, подходящие под условие?",code:"",opts:["ORDER BY","WHERE","INSERT","CREATE"],a:1,why:"WHERE фильтрует строки по указанному условию."},
+ {topic:"Читаем запрос",q:"Что вернёт этот запрос?",code:"SELECT name FROM students WHERE age > 14;",opts:["Все столбцы всех учеников","Имена учеников старше 14 лет","Имена учеников младше 14 лет","Удалит учеников старше 14 лет"],a:1,why:"SELECT name выбирает имена, а WHERE age > 14 оставляет строки, где возраст больше 14."},
+ {topic:"Сортировка",q:"Как отсортировать результаты по возрасту от меньшего к большему?",code:"SELECT * FROM students ...;",opts:["WHERE age ASC","ORDER BY age ASC","SORT age UP","GROUP BY age"],a:1,why:"ORDER BY сортирует результаты, а ASC задаёт порядок по возрастанию."}
+];
+let index=0,score=0,selected=null,locked=false;
+const $=id=>document.getElementById(id);
+function show(id){["home","game","result"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function start(){index=0;score=0;show("game");render()}
+function render(){
+ selected=null;locked=false;
+ $("counter").textContent=`Вопрос ${index+1} из ${questions.length}`;
+ $("score").textContent=score;$("bar").style.width=`${index/questions.length*100}%`;
+ const q=questions[index];$("topic").textContent=q.topic;$("question").textContent=q.q;
+ $("code").textContent=q.code;$("code").classList.toggle("hidden",!q.code);
+ $("feedback").className="feedback hidden";$("feedback").textContent="";
+ $("check").classList.remove("hidden");$("check").disabled=true;$("next").classList.add("hidden");$("restart").classList.toggle("hidden",index===0);
+ $("options").innerHTML="";
+ q.opts.forEach((opt,i)=>{const b=document.createElement("button");b.className="option";b.innerHTML=`<span class="letter">${String.fromCharCode(65+i)}</span><span></span>`;b.querySelector("span:last-child").textContent=opt;b.onclick=()=>{if(locked)return;selected=i;[...$("options").children].forEach(x=>x.classList.remove("selected"));b.classList.add("selected");$("check").disabled=false};$("options").appendChild(b)});
+}
+function check(){
+ if(selected===null||locked)return;locked=true;const q=questions[index];const buttons=[...$("options").children];
+ buttons.forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add("correct");if(i===selected&&i!==q.a)b.classList.add("wrong")});
+ const good=selected===q.a;if(good)score++;$("score").textContent=score;
+ $("feedback").textContent=(good?"✅ Верно! ":"❌ Не совсем. ")+q.why;
+ $("feedback").className="feedback "+(good?"good":"bad");
+ $("check").classList.add("hidden");$("next").classList.remove("hidden");$("next").textContent=index===questions.length-1?"Посмотреть результат →":"Следующий вопрос →";
+ $("bar").style.width=`${(index+1)/questions.length*100}%`;
+}
+function next(){if(index<questions.length-1){index++;render()}else finish()}
+function finish(){show("result");$("finalscore").textContent=`${score}/${questions.length}`;$("bar").style.width="100%";let rank,msg;if(score===5){rank="🏆 SQL-мастер!";msg="Идеально! Ты ответил правильно на все вопросы."}else if(score>=3){rank="🚀 Хороший результат!";msg="Ты уже знаешь основы SELECT. Повтори объяснения и попробуй набрать максимум."}else{rank="💪 Продолжай тренироваться!";msg="Практика поможет разобраться. Сыграй ещё раз и запомни объяснения."}$("rank").textContent=rank;$("message").textContent=msg}
+$("start").onclick=start;$("check").onclick=check;$("next").onclick=next;$("restart").onclick=start;$("again").onclick=start;
+</script>
+</body>
+</html>
