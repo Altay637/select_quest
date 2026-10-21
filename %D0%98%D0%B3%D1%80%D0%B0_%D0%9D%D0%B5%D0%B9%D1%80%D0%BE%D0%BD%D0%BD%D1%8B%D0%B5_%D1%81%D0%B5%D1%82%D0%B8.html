@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Игра-тест: Нейронные сети</title>
+<style>
+:root{--bg:#0b1024;--panel:#151d3b;--panel2:#202b50;--text:#f4f7ff;--muted:#b9c5e7;--accent:#7c8cff;--good:#36c98f;--bad:#ff7185}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Arial,sans-serif;background:radial-gradient(circle at top,#263b76 0,#0b1024 55%);color:var(--text);display:flex;align-items:center;justify-content:center;padding:22px}
+main{width:min(760px,100%);background:rgba(21,29,59,.96);border:1px solid #354477;border-radius:24px;padding:clamp(20px,5vw,38px);box-shadow:0 20px 70px #0006}
+.eyebrow{color:#aab8ff;text-transform:uppercase;letter-spacing:2px;font-size:.78rem;font-weight:bold}.hero{text-align:center}.brain{font-size:4rem;margin:8px}.hero h1{font-size:clamp(2rem,6vw,3rem);margin:8px 0}.hero p,.muted{color:var(--muted);line-height:1.6}.btn{border:0;border-radius:13px;padding:14px 20px;background:var(--accent);color:#fff;font-size:1rem;font-weight:bold;cursor:pointer;transition:.15s}.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}.btn:focus-visible,.option:focus-visible{outline:3px solid white;outline-offset:3px}.btn.secondary{background:#303d68}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.full{width:100%;margin-top:18px}.topline{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.9rem}.track{height:8px;background:#303b60;border-radius:99px;overflow:hidden;margin:12px 0 24px}.fill{height:100%;width:0;background:linear-gradient(90deg,#7c8cff,#53e0d0);transition:width .25s}.qnum{color:#aab8ff;font-weight:bold;font-size:.9rem}.question{font-size:clamp(1.25rem,4vw,1.65rem);line-height:1.35;margin:10px 0 22px}.options{display:grid;gap:11px}.option{display:flex;align-items:center;gap:12px;text-align:left;background:#202b50;border:2px solid #34416e;color:var(--text);padding:14px;border-radius:13px;font-size:1rem;cursor:pointer}.option:hover{border-color:#7c8cff}.option.selected{border-color:#a6afff;background:#303c70}.letter{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:#354477;font-weight:bold}.option.correct{border-color:var(--good);background:#153d3b}.option.wrong{border-color:var(--bad);background:#482638}.feedback{margin-top:17px;padding:14px;border-radius:12px;background:#202b50;line-height:1.5}.feedback.good{border:1px solid var(--good)}.feedback.bad{border:1px solid var(--bad)}.hidden{display:none!important}.actions{display:flex;gap:10px;justify-content:space-between;margin-top:20px}.actions .btn{flex:1}.score{font-size:4rem;font-weight:800;margin:8px}.result-icon{font-size:3rem}.review{border-top:1px solid #354477;padding:14px 0}.review strong{display:block;margin-bottom:6px}.pill{display:inline-block;padding:6px 10px;border-radius:99px;background:#303d68;color:#dce2ff;font-size:.85rem}
+@media(max-width:480px){body{padding:10px}main{border-radius:18px}.actions{flex-direction:column}.actions .btn{width:100%}}
+</style>
+</head>
+<body>
+<main>
+<section id="start" class="hero">
+  <div class="eyebrow">Интерактивная викторина</div>
+  <div class="brain" aria-hidden="true">🧠</div>
+  <h1>Нейронные сети</h1>
+  <p>Проверь свои знания об искусственном интеллекте!<br>10 вопросов · 4 варианта · результат в конце</p>
+  <div class="pill">Правильный ответ = 1 балл</div>
+  <button class="btn full" id="startBtn">Начать игру →</button>
+</section>
+<section id="quiz" class="hidden">
+  <div class="topline"><span id="progressText">Вопрос 1 из 10</span><span id="scoreText">Баллы: 0</span></div>
+  <div class="track"><div class="fill" id="progressFill"></div></div>
+  <div class="qnum" id="qnum">ВОПРОС 01</div>
+  <h2 class="question" id="question"></h2>
+  <div class="options" id="options"></div>
+  <div id="feedback" class="feedback hidden" aria-live="polite"></div>
+  <div class="actions">
+    <button class="btn secondary" id="backBtn">← Назад</button>
+    <button class="btn" id="nextBtn" disabled>Ответить</button>
+  </div>
+</section>
+<section id="result" class="hero hidden">
+  <div class="result-icon">🏆</div>
+  <div class="eyebrow">Тест завершён</div>
+  <h1 id="resultTitle">Отлично!</h1>
+  <div class="score" id="finalScore">0/10</div>
+  <p id="resultText"></p>
+  <button class="btn full" id="reviewBtn">Посмотреть ответы</button>
+  <button class="btn secondary full" id="restartBtn">Пройти ещё раз ↻</button>
+  <div id="review" class="hidden" style="text-align:left;margin-top:24px"></div>
+</section>
+</main>
+<script>
+const questions = [
+ {q:"Что такое нейронная сеть?",a:["Компьютерная игра","Модель ИИ, которая учится находить закономерности в данных","Вид компьютерного вируса","Обычная папка с файлами"],c:1,e:"Нейронная сеть — модель искусственного интеллекта, обучающаяся на данных."},
+ {q:"Что вдохновило создание искусственных нейронных сетей?",a:["Работа нервных клеток мозга","Устройство принтера","Строение клавиатуры","Работа батарейки"],c:0,e:"Их устройство частично вдохновлено тем, как нервные клетки взаимодействуют в мозге."},
+ {q:"Для чего используют нейронные сети?",a:["Только для игр","Только для хранения файлов","Для распознавания изображений, текста и речи","Только для печати документов"],c:2,e:"Нейронные сети помогают распознавать изображения, понимать текст и обрабатывать речь."},
+ {q:"Как обычно обучают нейронную сеть?",a:["Она читает мысли","На примерах, корректируя внутренние параметры","Нажатием случайных кнопок","Только подключением к Wi-Fi"],c:1,e:"Во время обучения модель корректирует параметры, чтобы лучше выполнять задачу."},
+ {q:"Какой пример применения нейронной сети встречается в телефонах?",a:["Бумажный блокнот","Фонарик без датчиков","Обычная кнопка громкости","Распознавание лица"],c:3,e:"Некоторые телефоны используют модели ИИ для распознавания лица."},
+ {q:"Может ли нейронная сеть ошибаться?",a:["Нет, никогда","Только ночью","Да, поэтому важные ответы нужно проверять","Только без зарядки"],c:2,e:"ИИ может выдавать неверные или неточные ответы, поэтому проверка важна."},
+ {q:"Что такое искусственный интеллект?",a:["Только робот с руками","Технологии для выполнения задач, требующих интеллектуальных способностей","Название монитора","Вид компьютерного кабеля"],c:1,e:"Искусственный интеллект — широкая область технологий; нейронные сети — один из её методов."},
+ {q:"Что часто помогает улучшить обучение нейросети?",a:["Качественные и подходящие данные","Полное отсутствие примеров","Выключенный компьютер","Случайные ответы без проверки"],c:0,e:"Качество данных и их соответствие задаче часто влияют на результат."},
+ {q:"Что может делать генеративная нейронная сеть?",a:["Только включать компьютер","Ремонтировать любой прибор самостоятельно","Создавать текст, изображения или музыку","Гарантировать абсолютную правду"],c:2,e:"Генеративные модели могут создавать новый контент, например текст или изображения."},
+ {q:"Как безопаснее пользоваться нейросетью?",a:["Отправлять ей пароли","Верить каждому ответу","Публиковать личные данные","Проверять важные факты и не сообщать личные данные"],c:3,e:"Проверяй важную информацию и не отправляй в сервисы личные данные и пароли."}
+];
+let index=0, answers=Array(questions.length).fill(null), checked=false;
+const $=id=>document.getElementById(id);
+function show(section){["start","quiz","result"].forEach(id=>$(id).classList.toggle("hidden",id!==section));}
+function render(){
+ checked=false; const q=questions[index];
+ $("progressText").textContent=`Вопрос ${index+1} из ${questions.length}`;
+ $("scoreText").textContent=`Баллы: ${answers.filter((a,i)=>a===questions[i].c).length}`;
+ $("progressFill").style.width=`${index/questions.length*100}%`;
+ $("qnum").textContent=`ВОПРОС ${String(index+1).padStart(2,"0")}`;
+ $("question").textContent=q.q; $("options").innerHTML="";
+ $("feedback").className="feedback hidden"; $("feedback").textContent="";
+ q.a.forEach((answer,i)=>{
+  const b=document.createElement("button"); b.className="option"; b.type="button";
+  b.innerHTML=`<span class="letter">${"ABCD"[i]}</span><span></span>`; b.lastElementChild.textContent=answer;
+  if(answers[index]===i)b.classList.add("selected");
+  b.addEventListener("click",()=>{if(checked)return;answers[index]=i;renderOptions();});
+  $("options").appendChild(b);
+ });
+ $("backBtn").disabled=index===0;
+ $("nextBtn").disabled=answers[index]===null;
+ $("nextBtn").textContent=index===questions.length-1?"Завершить тест":"Ответить";
+}
+function renderOptions(){
+ [...$("options").children].forEach((b,i)=>b.classList.toggle("selected",answers[index]===i));
+ $("nextBtn").disabled=answers[index]===null;
+}
+$("startBtn").onclick=()=>{show("quiz");render();};
+$("backBtn").onclick=()=>{if(index>0){index--;render();}};
+$("nextBtn").onclick=()=>{
+ if(answers[index]===null)return;
+ if(!checked){
+  checked=true;const q=questions[index],correct=answers[index]===q.c;
+  [...$("options").children].forEach((b,i)=>{b.disabled=true;if(i===q.c)b.classList.add("correct");if(i===answers[index]&&!correct)b.classList.add("wrong");});
+  $("feedback").className="feedback "+(correct?"good":"bad");
+  $("feedback").textContent=(correct?"✓ Правильно! ":"✗ Не совсем. Правильный ответ: "+q.a[q.c]+". ")+q.e;
+  $("nextBtn").textContent=index===questions.length-1?"Результаты →":"Следующий вопрос →";
+  $("nextBtn").disabled=false;
+  $("scoreText").textContent=`Баллы: ${answers.filter((a,i)=>a===questions[i].c).length}`;
+  $("progressFill").style.width=`${(index+1)/questions.length*100}%`;
+ }else if(index<questions.length-1){index++;render();}
+ else{finish();}
+};
+function finish(){
+ const score=answers.filter((a,i)=>a===questions[i].c).length;
+ $("finalScore").textContent=`${score}/10`;
+ $("resultTitle").textContent=score>=9?"Превосходно!":score>=7?"Отличная работа!":score>=5?"Хороший старт!":"Попробуй ещё раз!";
+ $("resultText").textContent=score>=9?"Ты отлично разбираешься в нейронных сетях.":score>=7?"Ты хорошо знаешь тему — осталось закрепить несколько фактов.":score>=5?"Ты уже знаешь основы. Посмотри пояснения и попробуй снова.":"Повтори основы нейронных сетей и пройди тест ещё раз.";
+ $("review").classList.add("hidden");$("reviewBtn").textContent="Посмотреть ответы";show("result");
+}
+$("reviewBtn").onclick=()=>{
+ const r=$("review");
+ if(!r.classList.contains("hidden")){r.classList.add("hidden");$("reviewBtn").textContent="Посмотреть ответы";return;}
+ r.innerHTML="";
+ questions.forEach((q,i)=>{const d=document.createElement("div");d.className="review";const strong=document.createElement("strong");strong.textContent=`${i+1}. ${q.q}`;const p=document.createElement("p");p.textContent=`Твой ответ: ${answers[i]===null?"Нет ответа":q.a[answers[i]]}`;const good=document.createElement("p");good.textContent=`Правильный ответ: ${q.a[q.c]}`;good.style.color="#7de7b7";const e=document.createElement("p");e.textContent=q.e;e.className="muted";d.append(strong,p,good,e);r.appendChild(d);});
+ r.classList.remove("hidden");$("reviewBtn").textContent="Скрыть ответы";
+};
+$("restartBtn").onclick=()=>{index=0;answers=Array(questions.length).fill(null);checked=false;show("start");};
+</script>
+</body>
+</html>
